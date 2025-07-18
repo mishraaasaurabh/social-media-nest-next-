@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Optional: Base layer to set some defaults */
+
+div {
+  border-radius: 0 !important;
+  background-color: white !important;
+}

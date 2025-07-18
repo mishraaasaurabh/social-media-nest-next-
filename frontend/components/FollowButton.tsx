@@ -1,41 +1,33 @@
+'use client';
 import { useState } from 'react';
+import axios from '@/lib/axios';
 
 interface FollowButtonProps {
-  userId: string;
-  isFollowing: boolean;
-  onFollowChange: (following: boolean) => void;
+  targetUserId: string;
+  isFollowingInitially: boolean;
 }
 
-const FollowButton: React.FC<FollowButtonProps> = ({ userId, isFollowing, onFollowChange }) => {
-  const [loading, setLoading] = useState(false);
+export default function FollowButton({ targetUserId, isFollowingInitially }: FollowButtonProps) {
+  const [isFollowing, setIsFollowing] = useState(isFollowingInitially);
 
   const handleFollowToggle = async () => {
-    setLoading(true);
+    const token = localStorage.getItem("accessToken");
     try {
-      const response = await fetch(`/api/follow/${userId}`, {
-        method: isFollowing ? 'DELETE' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        onFollowChange(!isFollowing);
-      } else {
-        // Handle error (e.g., show a notification)
-      }
-    } catch (error) {
-      // Handle error (e.g., show a notification)
-    } finally {
-      setLoading(false);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const url = isFollowing ? `/users/unfollow/${targetUserId}` : `/users/follow/${targetUserId}`;
+      await axios.post(url, {}, config);
+      setIsFollowing(!isFollowing);
+    } catch (err) {
+      alert("Failed to update follow status");
     }
   };
 
   return (
-    <button onClick={handleFollowToggle} disabled={loading}>
-      {loading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
+    <button
+      onClick={handleFollowToggle}
+      className={`px-4 py-1 rounded-full text-white text-sm ${isFollowing ? 'bg-gray-500' : 'bg-blue-600'}`}
+    >
+      {isFollowing ? 'Unfollow' : 'Follow'}
     </button>
   );
-};
-
-export default FollowButton;
+}

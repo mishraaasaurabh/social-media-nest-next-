@@ -1,23 +1,9 @@
-import React from 'react';
-
-interface PostCardProps {
-    title: string;
-    description: string;
-    author: string;
-    createdAt: string;
+export function PostCard({ post }: { post: any }) {
+  return (
+    <div className="border rounded-xl p-4 shadow-sm">
+      <h3 className="font-bold text-lg">{post.title}</h3>
+      <p className="text-gray-600">{post.description}</p>
+      <p className="text-xs text-right text-gray-400 mt-2">By {post.author?.username || "Unknown"}</p>
+    </div>
+  );
 }
-
-const PostCard: React.FC<PostCardProps> = ({ title, description, author, createdAt }) => {
-    return (
-        <div className="border p-4 rounded-lg shadow-md mb-4">
-            <h2 className="text-xl font-bold">{title}</h2>
-            <p className="text-gray-600">{description}</p>
-            <div className="mt-2 text-sm text-gray-500">
-                <p>Posted by: {author}</p>
-                <p>{new Date(createdAt).toLocaleString()}</p>
-            </div>
-        </div>
-    );
-};
-
-export default PostCard;

@@ -1,50 +1,41 @@
+'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { Button, Input, Textarea } from 'shadcn/ui';
-import { createPost } from '../../lib/api';
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import axios from "@/lib/axios";
+import Navbar from '@/components/Navbar';
 
-const CreatePostPage = () => {
+export default function CreatePostPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
-  const router = useRouter();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const token = localStorage.getItem("token");
 
+  const handleCreate = async () => {
     try {
-      await createPost({ title, description });
-      router.push('/timeline');
-    } catch (err) {
-      setError('Failed to create post. Please try again.');
+      await axios.post("/posts", { title, description },{
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      });
+      alert("Post created")
+      window.location.href = "/timeline";
+    } catch(err) {
+      console.error("create-post error",err)
+      alert("Post failed");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h1 className="text-2xl font-bold mb-4">Create a New Post</h1>
-      {error && <p className="text-red-500">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <Input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          className="mb-4"
-        />
-        <Textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          className="mb-4"
-        />
-        <Button type="submit">Create Post</Button>
-      </form>
-    </div>
+    <>
+      <Navbar />
+      <div className="max-w-xl mx-auto mt-10 space-y-6 px-4">
+        <h2 className="text-xl font-semibold">Create New Post</h2>
+        <Input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
+        <Textarea placeholder="Description" rows={5} value={description} onChange={e => setDescription(e.target.value)} />
+        <Button className="w-full" onClick={handleCreate}>Post</Button>
+      </div>
+    </>
   );
-};
-
-export default CreatePostPage;
+}

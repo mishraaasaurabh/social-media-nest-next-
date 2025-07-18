@@ -18,58 +18,26 @@ export class UserService {
     return this.userModel.findOne({ username }).exec();
   }
 
-  async followUser(currentUserId: string, targetUserId: string) {
-    if (currentUserId === targetUserId) {
-      throw new BadRequestException('You cannot follow yourself');
-    }
-
-    const currentUser = await this.userModel.findById(currentUserId);
+  async follow(currentUserId: string, targetUserId: string) {
     const targetUser = await this.userModel.findById(targetUserId);
+    if (!targetUser) throw new NotFoundException('User to follow not found');
 
-    if (!currentUser) throw new NotFoundException('Current user not found');
-    if (!targetUser) throw new NotFoundException('Target user not found');
-
-    const targetId = targetUser._id as Types.ObjectId;
-    const currentId = currentUser._id as Types.ObjectId;
-
-    const alreadyFollowing = (currentUser.following as Types.ObjectId[]).some(
-      (id) => id.equals(targetId),
+    return this.userModel.findByIdAndUpdate(
+      currentUserId,
+      { $addToSet: { following: new Types.ObjectId(targetUserId) } },
+      { new: true },
     );
-
-    if (alreadyFollowing) {
-      throw new BadRequestException('Already following this user');
-    }
-
-    (currentUser.following as Types.ObjectId[]).push(targetId);
-    (targetUser.followers as Types.ObjectId[]).push(currentId);
-
-    await currentUser.save();
-    await targetUser.save();
-
-    return { message: 'Followed successfully' };
   }
 
-  async unfollowUser(currentUserId: string, targetUserId: string) {
-    const currentUser = await this.userModel.findById(currentUserId);
-    const targetUser = await this.userModel.findById(targetUserId);
-
-    if (!currentUser) throw new NotFoundException('Current user not found');
-    if (!targetUser) throw new NotFoundException('Target user not found');
-
-    const targetId = targetUser._id as Types.ObjectId;
-    const currentId = currentUser._id as Types.ObjectId;
-
-    currentUser.following = (currentUser.following as Types.ObjectId[]).filter(
-      (id) => !id.equals(targetId),
+  async unfollow(currentUserId: string, targetUserId: string) {
+    return this.userModel.findByIdAndUpdate(
+      currentUserId,
+      { $pull: { following: new Types.ObjectId(targetUserId) } },
+      { new: true },
     );
+  }
 
-    targetUser.followers = (targetUser.followers as Types.ObjectId[]).filter(
-      (id) => !id.equals(currentId),
-    );
-
-    await currentUser.save();
-    await targetUser.save();
-
-    return { message: 'Unfollowed successfully' };
+  async getFollowings(userId: string) {
+    return this.userModel.findById(userId).populate('following', 'username');
   }
 }

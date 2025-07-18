@@ -9,16 +9,16 @@ export class UsersController {
   constructor(private readonly userService: UserService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post(':id/follow')
-  follow(@Param('id') id: string, @Req() req: Request) {
-    const currentUser = req.user as any;
-    return this.userService.followUser(currentUser.userId, id);
+  @Post('follow/:id')
+  followUser(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as any;
+    return this.userService.follow(user.userId, id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post(':id/unfollow')
-  unfollow(@Param('id') id: string, @Req() req: Request) {
-    const currentUser = req.user as any;
-    return this.userService.unfollowUser(currentUser.userId, id);
+  @Post('unfollow/:id')
+  unfollowUser(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as any;
+    return this.userService.unfollow(user.userId, id);
   }
 }
