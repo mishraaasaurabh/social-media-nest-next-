@@ -6,12 +6,35 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
   async create(username: string, password: string): Promise<UserDocument> {
     const hashed = await bcrypt.hash(password, 10);
     const newUser = new this.userModel({ username, password: hashed });
     return newUser.save();
+  }
+
+  async getRecommendedUsers(currentUserId: string): Promise<User[]> {
+    const currentUser = await this.userModel.findById(currentUserId);
+    if (!currentUser) {
+      throw new Error("Current user not found");
+    }
+
+    return this.userModel.find({
+      _id: { $ne: currentUserId, $nin: currentUser.following },
+    })
+      .limit(10)
+      .select('_id username')
+      .exec();
+  }
+
+  // Optional: find by ID
+  async findById(id: string): Promise<User> {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
   }
 
   async findByUsername(username: string): Promise<UserDocument | null> {
